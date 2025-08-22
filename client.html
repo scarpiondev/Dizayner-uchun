@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Topshiriq Holati</title>
+  <style>
+    body {
+      font-family: Helvetica, sans-serif;
+      background-color: #0e1628;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .panel {
+      background-color: #141d2f;
+      padding: 30px;
+      border-radius: 12px;
+      width: 350px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 2px solid #00bcd4;
+      border-radius: 8px;
+      background: #0e1628;
+      color: white;
+    }
+
+    button {
+      background-color: #00bcd4;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 15px;
+      background: #1a253c;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .label { color: #bbb; font-weight: normal; }
+    .value { color: #fff; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <h2>Texnik topshiriq holatini bilish!</h2>
+    <input type="text" id="pinSearch" placeholder="PIN kiriting">
+    <button onclick="checkTask()">Tasdiqlash</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function checkTask() {
+      const pinInput = document.getElementById("pinSearch").value.toLowerCase();
+      const resultDiv = document.getElementById("result");
+      const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+      const found = tasks.find(task => task.pin === pinInput);
+
+      if (found) {
+        const deadlineDate = new Date(found.deadline);
+        const deadlineStr = deadlineDate.toLocaleString("uz-UZ", {
+          day: "2-digit", month: "2-digit", year: "numeric",
+          hour: "2-digit", minute: "2-digit"
+        });
+
+        resultDiv.innerHTML = `
+          <p><span class="label">Topshiriq nomi:</span> <span class="value">${found.name}</span></p>
+          <p><span class="label">Filial:</span> <span class="value">${found.filial}</span></p>
+          <p><span class="label">Dizayner:</span> <span class="value">${found.designer}</span></p>
+          <p><span class="label">Holati:</span> <span class="value">${found.status}</span></p>
+          <p><span class="label">Deadline:</span> <span class="value">${deadlineStr}</span></p>
+        `;
+      } else {
+        resultDiv.innerHTML = `<p style="color:red;">❌ Bunday PIN topilmadi.</p>`;
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Dizayner Paneli</title>
+  <style>
+    body {
+      font-family: Helvetica, sans-serif;
+      background-color: #0e1628;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+
+    .panel {
+      background-color: #141d2f;
+      padding: 20px;
+      border-radius: 12px;
+      width: 360px;
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 2px solid #00bcd4;
+      border-radius: 8px;
+      background: #0e1628;
+      color: white;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-weight: bold;
+      background-color: #00bcd4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background-color: #2a2a2a;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .task-list {
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .task {
+      background-color: #141d2f;
+      border: 1px solid #00bcd4;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .task p {
+      margin: 8px 0;
+    }
+
+    .delete-btn {
+      background-color: #00bcd4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .status-select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      background-color: #0e1628;
+      color: white;
+      border: 1px solid #00bcd4;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="panel">
+    <h2>Dizayner paneli</h2>
+    <input type="text" id="taskName" placeholder="Topshiriq nomi" oninput="validateForm()">
+    <input type="datetime-local" id="deadline" oninput="validateForm()">
+    <input type="text" id="pin" placeholder="PIN kod" oninput="validateForm()">
+    <input type="text" id="filial" placeholder="Filial (masalan: Sergeli)" oninput="validateForm()">
+    <input type="text" id="designer" placeholder="Dizayner ID" oninput="validateForm()">
+    <select id="status" onchange="validateForm()">
+      <option value="">-- Holatni tanlang --</option>
+      <option value="Jarayonda">Jarayonda</option>
+      <option value="Bajarildi">Bajarildi</option>
+      <option value="Rad etildi">Rad etildi</option>
+      <option value="Navbatda">Navbatda</option>
+    </select>
+    <button id="saveBtn" onclick="saveTask()" disabled>Topshiriqni saqlash</button>
+  </div>
+
+  <div class="task-list" id="taskList"></div>
+
+  <script>
+    function getTasks() {
+      return JSON.parse(localStorage.getItem("tasks")) || [];
+    }
+
+    function saveTasks(tasks) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function validateForm() {
+      const taskName = document.getElementById("taskName").value.trim();
+      const deadline = document.getElementById("deadline").value;
+      const pin = document.getElementById("pin").value.trim();
+      const filial = document.getElementById("filial").value.trim();
+      const designer = document.getElementById("designer").value.trim();
+      const status = document.getElementById("status").value;
+
+      const saveBtn = document.getElementById("saveBtn");
+
+      saveBtn.disabled = !(taskName && deadline && pin && filial && designer && status);
+    }
+
+    function saveTask() {
+      const task = {
+        name: document.getElementById("taskName").value,
+        deadline: document.getElementById("deadline").value,
+        pin: document.getElementById("pin").value.toLowerCase(),
+        filial: document.getElementById("filial").value,
+        designer: document.getElementById("designer").value,
+        status: document.getElementById("status").value,
+      };
+
+      const tasks = getTasks();
+      tasks.push(task);
+      saveTasks(tasks);
+
+      alert("✅ Topshiriq saqlandi!");
+
+      // Reset form
+      document.querySelectorAll("input").forEach(i => i.value = "");
+      document.getElementById("status").selectedIndex = 0;
+      document.getElementById("saveBtn").disabled = true;
+
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      const tasks = getTasks();
+      tasks.splice(index, 1);
+      saveTasks(tasks);
+      renderTasks();
+    }
+
+    function updateStatus(index, newStatus) {
+      const tasks = getTasks();
+      tasks[index].status = newStatus;
+      saveTasks(tasks);
+    }
+
+    function renderTasks() {
+      const taskList = document.getElementById("taskList");
+      taskList.innerHTML = "";
+
+      const tasks = getTasks();
+      if (tasks.length === 0) {
+        taskList.innerHTML = "<p style='text-align:center;'>🚫 Hozircha hech qanday topshiriq mavjud emas.</p>";
+        return;
+      }
+
+      tasks.forEach((task, index) => {
+        const taskElem = document.createElement("div");
+        taskElem.className = "task";
+        taskElem.innerHTML = `
+          <p><strong>${task.name}</strong></p>
+          <p><span class="label">Holati:</span>
+            <select class="status-select" onchange="updateStatus(${index}, this.value)">
+              <option ${task.status === "Jarayonda" ? "selected" : ""}>Jarayonda</option>
+              <option ${task.status === "Bajarildi" ? "selected" : ""}>Bajarildi</option>
+              <option ${task.status === "Rad etildi" ? "selected" : ""}>Rad etildi</option>
+              <option ${task.status === "Navbatda" ? "selected" : ""}>Navbatda</option>
+            </select>
+          </p>
+          <p><span class="label">PIN:</span> ${task.pin}</p>
+          <button class="delete-btn" onclick="deleteTask(${index})">O‘chirish</button>
+        `;
+        taskList.appendChild(taskElem);
+      });
+    }
+
+    renderTasks();
+  </script>
+
+</body>
+</html>
